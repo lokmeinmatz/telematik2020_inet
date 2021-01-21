@@ -5,6 +5,8 @@ all frrouting commands can get shortened till unique, like `sho interf br` for `
 
 `exit` moves you one layer back
 
+each router (except GENE and ZURI) has an associated host device, you can access via `./goto.sh <ROUTER_NAME> host`
+
 # TODO per router with id Y and name <ROUTER_NAME>
 
 check which interfaces are allready configured with `show interface brief`
