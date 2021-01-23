@@ -39,3 +39,34 @@ Process same as for loopback, interface names are `port_<CONNECTED_ROUTER>`
 * go back to AS root, then `./goto.sh <ROUTER_NAME> host`
 * `ip address add 19.[100+Y].0.1/24 dev <ROUTER_NAME>router`
 ping between host and rotuer should work
+
+
+
+# Configure OSPF
+
+enable ospf with
+* `router ospf`
+* `network 19.0.0.0/24 area 0` for inter-router-ospf
+* `network 19.10x.0.0/24 area 0` for host ospf
+
+
+To check if ospf is working, wait a few seconds and type `show ip route ospf`
+There you can check which entries came from other routers and via which port the packet is routed
+
+each host also needs a default route configured, where to send all packets that don't belong in the subnet between host and router.
+Set with `ip route add default via 19.10x.0.2`
+
+
+# result
+``` console
+root@PARI_host:~# traceroute ATLA-host.group19
+traceroute to ATLA-host.group19 (19.107.0.2), 30 hops max, 60 byte packets
+ 1  PARI-host.group19 (19.103.0.2)  0.162 ms  0.055 ms  0.053 ms
+ 2  NEWY-PARI.group19 (19.0.5.2)  2.216 ms MIAM-PARI.group19 (19.0.6.2)  0.285 ms NEWY-PARI.group19 (19.0.5.2)  2.114 ms 
+ 3  ATLA-host.group19 (19.107.0.2)  2.461 ms  0.570 ms  2.472 ms
+root@PARI_host:~#
+```
+
+Here a traceroute and DNS lookup work, the packet gets send
+
+PARI-host -> PARI-router -> NEWY-router -> ATLA-router -> ATLA-host
