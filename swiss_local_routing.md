@@ -25,21 +25,21 @@ Routers are assigned two IP addresses each, one per virtual interface, that is, 
 # Report
 
 ### Traceroute EPFL-student to EPFL-staff
-```shell
+```console
 root@student_3:~# traceroute 19.200.0.3
 traceroute to 19.200.0.3 (19.200.0.3), 30 hops max, 60 byte packets
  1  19.200.1.100 (19.200.1.100)  8.787 ms  8.309 ms  8.219 ms
  2  19.200.0.3 (19.200.0.3)  12.334 ms  11.103 ms  11.451 ms
 ```
 ### Traceroute ETHZ-staff to EPFL-student
-```shell
+```console
 root@staff_2:~# traceroute 19.200.1.3
 traceroute to 19.200.1.3 (19.200.1.3), 30 hops max, 60 byte packets
  1  19.200.0.200 (19.200.0.200)  4.062 ms  3.402 ms  3.400 ms
  2  19.200.1.3 (19.200.1.3)  13.809 ms  13.799 ms  13.832 ms
 ```
 ### Traceroute EPFL-student to ETHZ-staff
-```shell
+```console
 root@student_3:~# traceroute 19.200.0.2
 traceroute to 19.200.0.2 (19.200.0.2), 30 hops max, 60 byte packets
  1  19.200.1.100 (19.200.1.100)  6.800 ms  6.189 ms  6.093 ms
