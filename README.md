@@ -5,4 +5,5 @@ This repository contains documentation and backups of configuration of our auton
 [This](./netmap.png) netmap shows the overall network topology.
 ### Task 1: LAN and OSPF Routing
 **1.1:** The document [swiss_local_routing.md](./swiss_local_routing.md) explains the configuration inside the local area network.  
-**1.2:** The document [ospf_intra_routing.md](./ospf_intra_routing.md) documents the intra domain routing.
+**1.2:** The document [ospf_intra_routing.md](./ospf_intra_routing.md) documents the intra domain routing.  
+**1.3:** The document [ospf_cost.md](./ospf_cost.md) documents the cost of various links in our network.  
