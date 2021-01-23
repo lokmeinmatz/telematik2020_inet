@@ -1,4 +1,4 @@
-# basics
+# 1.2: basics
 fully configured example router is MIAM (8)
 
 all frrouting commands can get shortened till unique, like `sho interf br` for `show interface brief` 

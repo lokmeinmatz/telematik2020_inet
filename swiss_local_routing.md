@@ -1,4 +1,4 @@
-# Basic Overview of Configuration
+# 1.1: Basic Overview of Configuration
 
 ## Hosts
 Hosts are given an IP address and a standard gateway. Students and Staff are in different subnets. The `/23` subnet gets split up into two `/24` subnets.
@@ -22,7 +22,7 @@ Routers are assigned two IP addresses each, one per virtual interface, that is, 
 | ZURI | 10 | 19.200.0.200/24 |
 | | 20 | 19.200.1.200/24 |
 
-# Report
+## Reports on traceroutes
 
 ### Traceroute EPFL-student to EPFL-staff
 ```shell
