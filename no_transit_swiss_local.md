@@ -1,4 +1,4 @@
-# 1.4: No transit trough swiss local
+# 1.4: No transit through swiss local
 ## Technique
 We stopped routing through the swiss local network by not changing the default weights of the links of the two routers *GENE* and *ZURI* into the swiss local network. The default weight has the value of **10**, where as the route between *ZURI* and *GENE* traversing *PARI* has a weight of **4** in our network cost configuration explained in [ospf_cost.md](./ospf_cost.md).  
 
