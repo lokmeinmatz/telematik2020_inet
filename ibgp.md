@@ -1,6 +1,6 @@
 # 1.5: iBGP
 
-Each router has the following commands under `route bgp 19`:
+Each router was fed the following commands under `route bgp 19`:
 
 ```
 neighbor 19.157.0.1 remote-as 19
@@ -31,3 +31,6 @@ Neighbor        V         AS MsgRcvd MsgSent   TblVer  InQ OutQ  Up/Down State/P
 
 Total number of neighbors 7
 ```
+
+## Necessity of update-source 
+The command `update-source` needs to be used because the BGP-Session is established via the IP bound to the interface specified in the routing table as outgoing for the IP address of the partner. A temporary or permanent defect of this interface would tear down the connection, even though the router itself might still be online via one of the other interfaces. The command `update-source` allows binding the session to the IP and corresponding loopback interface, which will always be reachable as long as there is still a connection to the network.
