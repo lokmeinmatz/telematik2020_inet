@@ -1,0 +1,4 @@
+# 2.1: eBGP
+## Function of `next-hop-self`
+Since routing within the AS between routers belonging to the same AS shouldn't be determined by BGP, routers within the AS shouldn't add themselves to the respective paths when propagating routing information through the network.  
+Because of that, the routers bordering a different AS don't add themselves onto the path provided by external routers when forwarding the info to their interal BGP partners. This is problematic because now these routers are missing the address of the router able to reach the advertised AS. Therefore, routers bordering a different AS need to set themselves as the next hop when forwarding the information to iBGP partners. This ensures that these partners know how to reach the targets known to the border router.
