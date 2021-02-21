@@ -80,7 +80,7 @@ Origin codes:  i - IGP, e - EGP, ? - incomplete
    [...]
 ```
 
-### Measuremnt Container Output from AS6
+### Measurement Container Output from AS6
 ``` console 
 root@d84c6ab09884:~# ./launch_traceroute.sh 6 19.155.0.1
 Hop 1:  6.0.199.1 TTL=0 during transit

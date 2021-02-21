@@ -1,4 +1,4 @@
-# 1.2: basics
+# 1.2: OSPF basics
 fully configured example router is MIAM (8)
 
 all frrouting commands can get shortened till unique, like `sho interf br` for `show interface brief` 
@@ -7,7 +7,7 @@ all frrouting commands can get shortened till unique, like `sho interf br` for `
 
 each router (except GENE and ZURI) has an associated host device, you can access via `./goto.sh <ROUTER_NAME> host`
 
-# TODO per router with id Y and name <ROUTER_NAME>
+## per router with id Y and name <ROUTER_NAME>
 
 check which interfaces are allready configured with `show interface brief`
 
@@ -57,7 +57,7 @@ each host also needs a default route configured, where to send all packets that 
 Set with `ip route add default via 19.10x.0.2`
 
 
-# result
+# Result
 ``` console
 root@PARI_host:~# traceroute ATLA-host.group19
 traceroute to ATLA-host.group19 (19.107.0.2), 30 hops max, 60 byte packets
