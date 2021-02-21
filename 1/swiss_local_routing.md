@@ -1,4 +1,4 @@
-# 1.1: Basic Overview of Configuration
+# 1.1: VLAN and Swiss network
 
 ## Hosts
 Hosts are given an IP address and a standard gateway. Students and Staff are in different subnets. The `/23` subnet gets split up into two `/24` subnets.

@@ -33,31 +33,23 @@ route-map: ATTACH_COMM_VALS Invoked: 2291
     community 20
   Set clauses:
     community 82:2 82:4 82:6 82:8 82:10 82:12 82:14 82:15 82:17
-  Call clause:
-  Action:
-    Exit routemap
+[...]
  permit, sequence 11 Invoked 1592
   Match clauses:
     ip address prefix-list our_prefix
   Set clauses:
     community 82:2 82:4 82:6 82:8 82:10 82:12 82:14 82:15 82:17
-  Call clause:
-  Action:
-    Exit routemap
+[...]
  deny, sequence 12 Invoked 38
   Match clauses:
     community 10
   Set clauses:
-  Call clause:
-  Action:
-    Exit routemap
+[...]
  permit, sequence 13 Invoked 34
   Match clauses:
   Set clauses:
     community 82:2 82:4 82:6 82:8 82:10 82:12 82:14 82:15
-  Call clause:
-  Action:
-    Exit routemap
+[...]
 ```
 The route-map `ATTACH_COMM_VALS` has three route entries. The first checks for routes being sent to us by our customers AS21 and AS22 via the community-list `20`. The second checks for our own prefix. Both of those route entries add community values advertising to all peers connected to the IXP.  
 The third entry advertises all other prefixes and routes to all participants except to our Provider AS17. This prevents us from being used as a transit network to our provider for prefixes not associated with us or our customers.

@@ -55,13 +55,6 @@ At NEWY facing the IXP82 and PARI facing our PEER AS20 we made sure to only expo
 ### Looking Glass of Peer AS20
 ``` console
 2021-02-18T20:38:39
-BGP table version is 570014, local router ID is 20.153.0.1, vrf id 0
-Default local pref 100, local AS 20
-Status codes:  s suppressed, d damped, h history, * valid, > best, = multipath,
-               i internal, r RIB-failure, S Stale, R Removed
-Nexthop codes: @NNN nexthop's vrf id, < announce-nh-self
-Origin codes:  i - IGP, e - EGP, ? - incomplete
-
    Network          Next Hop            Metric LocPrf Weight Path
 *>i1.0.0.0/8        20.155.0.1               0    100      0 1 i
 *>i2.0.0.0/8        20.155.0.1                    100      0 1 3 2 i
@@ -98,21 +91,7 @@ Origin codes:  i - IGP, e - EGP, ? - incomplete
 *                   179.0.92.2                             0 19 21 24 i
 *>i25.0.0.0/8       20.155.0.1                    100      0 7 24 25 i
 *>i26.0.0.0/8       20.155.0.1                    100      0 7 26 i
-* i176.0.0.0/4      20.156.0.1                    100      0 18 17 i
-*>i                 20.151.0.1                    100      0 18 17 i
-* i179.0.12.0/24    20.156.0.1                    100      0 18 17 i
-*>i                 20.151.0.1                    100      0 18 17 i
-* i179.0.16.0/24    20.156.0.1                    100      0 18 17 i
-*>i                 20.151.0.1                    100      0 18 17 i
-* i179.0.84.0/24    20.156.0.1                    100      0 18 17 i
-*>i                 20.151.0.1                    100      0 18 17 i
-*>i179.0.89.0/24    20.152.0.1               0    100      0 17 i
-*>i179.0.90.0/24    20.152.0.1                    100      0 17 i
-* i179.0.91.0/24    20.156.0.1                    100      0 18 17 i
-*>i                 20.151.0.1                    100      0 18 17 i
-*>i180.82.0.0/24    20.152.0.1                    100      0 17 i
-
-Displayed  32 routes and 48 total paths
+[...]
 ```
 
 ### Measurement Traceroute from Customer AS22 to Peer AS6

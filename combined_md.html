@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Telematik 20/21 FU Berlin Mini-Inet AS19</title>
+  <style type="text/css">
+      code{white-space: pre-wrap;}
+      span.smallcaps{font-variant: small-caps;}
+      span.underline{text-decoration: underline;}
+      div.column{display: inline-block; vertical-align: top; width: 50%;}
+  </style>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<h1 id>
+</h1>
+<h1 id="fu-telematics-2021-project-2---mini-internet">FU Telematics 20/21 Project 2 - Mini Internet</h1>
+<h2 id="group-19">Group 19</h2>
+<h2 id="by-corin-baurmann-karl-skomski-justus-purat-matthias-kind">by Corin Baurmann, Karl Skomski, Justus Purat, Matthias Kind</h2>
+<blockquote>
+<p>This PDF is generated from multiple Markdown files. The seperate files, as wall as additional information, can be found at <a href="https://github.com/lokmeinmatz/telematik2020_inet">https://github.com/lokmeinmatz/telematik2020_inet</a></p>
+</blockquote>
+<h2 id="contents">Contents</h2>
+<h3 id="internal-networking">1 - Internal Networking</h3>
+<ul>
+<li><a href="#1.1">1.1: VLAN and Swiss network</a></li>
+<li><a href="#1.2">1.2: OSPF basics</a></li>
+<li><a href="#1.3">1.3: OSPF Cost adjusted to Network type 4</a></li>
+<li><a href="#1.4">1.4: No transit through swiss local</a></li>
+<li><a href="#1.5">1.5: iBGP</a></li>
+</ul>
+<h3 id="ebgp">2 - eBGP</h3>
+<ul>
+<li><a href="#2.1">2.1: eBGP</a></li>
+<li><a href="#2.2">2.2: IXP Peering</a></li>
+</ul>
+<h3 id="policies">3 - Policies</h3>
+<ul>
+<li><a href="#3.1">3.1: Business relationships</a></li>
+<li><a href="#3.2">3.2 IXP policy</a></li>
+<li><a href="#3.5">3.5: BGP Hijack</a></li>
+</ul>
+<h1 id="1.1">
+</h1>
+<h1 id="vlan-and-swiss-network">1.1: VLAN and Swiss network</h1>
+<h2 id="hosts">Hosts</h2>
+<p>Hosts are given an IP address and a standard gateway. Students and Staff are in different subnets. The <code>/23</code> subnet gets split up into two <code>/24</code> subnets. Hosts at switches <em>CERN</em> and <em>EPFL</em> use Router <em>GENE</em> as Router and Gateway, hosts at switch <em>EHTZ</em> use Router <em>ZURI</em>.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Hostname</th>
+<th>IP</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>staff_x</td>
+<td>19.200.0.x/24</td>
+</tr>
+<tr class="even">
+<td>student_x</td>
+<td>19.200.0.x/24</td>
+</tr>
+</tbody>
+</table>
+<h2 id="switches">Switches</h2>
+<p>Switches are configured to tag ports connected to staff with <code>VLAN 10</code>, ports with students with <code>VLAN 20</code>. Trunks exist between switches and from switches to routers.</p>
+<h2 id="routers">Routers</h2>
+<p>Routers are assigned two IP addresses each, one per virtual interface, that is, one per interface per VLAN. As they are connected via trunk with the switches, the incomming trafic gets split up onto <code>{ROUTERname}-L2.10</code> and <code>{ROUTERname}-L2</code>.20. Corresponding to the VLANs and different subnets, <code>L2.10</code> interfaces are assigned an IP in the <code>19.200.0.0/24</code> subnet and <code>L2.20</code> are in the <code>19.200.1.0/24</code> subnet.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Router</th>
+<th>VLAN</th>
+<th>IP</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>GENE</td>
+<td>10</td>
+<td>19.200.0.100/24</td>
+</tr>
+<tr class="even">
+<td></td>
+<td>20</td>
+<td>19.200.1.100/24</td>
+</tr>
+<tr class="odd">
+<td>ZURI</td>
+<td>10</td>
+<td>19.200.0.200/24</td>
+</tr>
+<tr class="even">
+<td></td>
+<td>20</td>
+<td>19.200.1.200/24</td>
+</tr>
+</tbody>
+</table>
+<h2 id="reports-on-traceroutes">Reports on traceroutes</h2>
+<h3 id="traceroute-epfl-student-to-epfl-staff">Traceroute EPFL-student to EPFL-staff</h3>
+<pre class="console"><code>root@student_3:~# traceroute 19.200.0.3
+traceroute to 19.200.0.3 (19.200.0.3), 30 hops max, 60 byte packets
+ 1  19.200.1.100 (19.200.1.100)  8.787 ms  8.309 ms  8.219 ms
+ 2  19.200.0.3 (19.200.0.3)  12.334 ms  11.103 ms  11.451 ms</code></pre>
+<h3 id="traceroute-ethz-staff-to-epfl-student">Traceroute ETHZ-staff to EPFL-student</h3>
+<pre class="console"><code>root@staff_2:~# traceroute 19.200.1.3
+traceroute to 19.200.1.3 (19.200.1.3), 30 hops max, 60 byte packets
+ 1  19.200.0.200 (19.200.0.200)  4.062 ms  3.402 ms  3.400 ms
+ 2  19.200.1.3 (19.200.1.3)  13.809 ms  13.799 ms  13.832 ms</code></pre>
+<h3 id="traceroute-epfl-student-to-ethz-staff">Traceroute EPFL-student to ETHZ-staff</h3>
+<pre class="console"><code>root@student_3:~# traceroute 19.200.0.2
+traceroute to 19.200.0.2 (19.200.0.2), 30 hops max, 60 byte packets
+ 1  19.200.1.100 (19.200.1.100)  6.800 ms  6.189 ms  6.093 ms
+ 2  19.200.0.2 (19.200.0.2)  14.132 ms  13.984 ms  14.051 ms</code></pre>
+<p>Since every traceroute is between subnets and respective VLANs, that is between staff’s <code>VLAN 10</code> and subnet <code>19.200.0.0/24</code> and student’s <code>VLAN 20</code> and subnet <code>19.200.1.0/24</code>, the respective host uses it’s standard gateway as configured above to send the packet to the router. The router then sends the packet to over the corresponding interface to the recipient.</p>
+<h1 id="1.2">
+</h1>
+<h1 id="ospf-basics">1.2: OSPF basics</h1>
+<p>fully configured example router is MIAM (8)</p>
+<p>all frrouting commands can get shortened till unique, like <code>sho interf br</code> for <code>show interface brief</code></p>
+<p><code>exit</code> moves you one layer back</p>
+<p>each router (except GENE and ZURI) has an associated host device, you can access via <code>./goto.sh &lt;ROUTER_NAME&gt; host</code></p>
+<h2 id="per-router-with-id-y-and-name">per router with id Y and name <ROUTER_NAME></h2>
+<p>check which interfaces are allready configured with <code>show interface brief</code></p>
+<h2 id="configure-loopback">configure loopback</h2>
+<p>interface name <code>lo</code> router Y needs lo address 19.[150+Y].0.1/24</p>
+<p>To set this: * <code>conf t</code> (goes into config mode) * <code>interface lo</code> * <code>ip address &lt;LOOPBACK_ADDRESS&gt;/24</code></p>
+<p>To test: <code>ping &lt;LOOPBACK_ADDRESS&gt;</code> should work</p>
+<h2 id="configure-router-interfaces">configure router interfaces</h2>
+<p>For addresses see netmap.png Process same as for loopback, interface names are <code>port_&lt;CONNECTED_ROUTER&gt;</code></p>
+<h2 id="configure-host-connection">configure host connection</h2>
+<ul>
+<li><code>conf t</code></li>
+<li><code>interface host</code></li>
+<li><p><code>ip address 19.[100+Y].0.2/24</code></p></li>
+<li>go back to AS root, then <code>./goto.sh &lt;ROUTER_NAME&gt; host</code></li>
+<li><p><code>ip address add 19.[100+Y].0.1/24 dev &lt;ROUTER_NAME&gt;router</code> ping between host and rotuer should work</p></li>
+</ul>
+<h1 id="configure-ospf">Configure OSPF</h1>
+<p>enable ospf with * <code>router ospf</code> * <code>network 19.0.0.0/24 area 0</code> for inter-router-ospf * <code>network 19.10x.0.0/24 area 0</code> for host ospf</p>
+<p>To check if ospf is working, wait a few seconds and type <code>show ip route ospf</code> There you can check which entries came from other routers and via which port the packet is routed</p>
+<p>each host also needs a default route configured, where to send all packets that don’t belong in the subnet between host and router. Set with <code>ip route add default via 19.10x.0.2</code></p>
+<h1 id="result">Result</h1>
+<pre class="console"><code>root@PARI_host:~# traceroute ATLA-host.group19
+traceroute to ATLA-host.group19 (19.107.0.2), 30 hops max, 60 byte packets
+ 1  PARI-host.group19 (19.103.0.2)  0.162 ms  0.055 ms  0.053 ms
+ 2  NEWY-PARI.group19 (19.0.5.2)  2.216 ms MIAM-PARI.group19 (19.0.6.2)  0.285 ms NEWY-PARI.group19 (19.0.5.2)  2.114 ms 
+ 3  ATLA-host.group19 (19.107.0.2)  2.461 ms  0.570 ms  2.472 ms
+root@PARI_host:~#</code></pre>
+<p>Here a traceroute and DNS lookup work, the packet gets send</p>
+<p>PARI-host -&gt; PARI-router -&gt; NEWY-router -&gt; ATLA-router -&gt; ATLA-host</p>
+<h1 id="1.3">
+</h1>
+<h1 id="ospf-cost-adjusted-to-network-type-4">1.3: OSPF Cost adjusted to Network type 4</h1>
+<h2 id="network-topology-and-link-weight">Network topology and link weight</h2>
+<figure>
+<img src="./ospf_cost.png" alt="Cost of individual network links" /><figcaption>Cost of individual network links</figcaption>
+</figure>
+<h2 id="traceroute-atla-host-to-zuri-loopback">Traceroute ATLA-host to ZURI-loopback</h2>
+<pre class="console"><code>root@ATLA_host:~# traceroute 19.152.0.1
+traceroute to 19.152.0.1 (19.152.0.1), 30 hops max, 60 byte packets
+ 1  ATLA-host.group19 (19.107.0.2)  0.513 ms  0.081 ms  0.026 ms
+ 2  MIAM-ATLA.group19 (19.0.13.2)  0.328 ms  0.351 ms NEWY-ATLA.group19 (19.0.11.1)  0.327 ms
+ 3  GENE-MIAM.group19 (19.0.9.1)  0.579 ms  0.541 ms BOST-NEWY.group19 (19.0.10.2)  0.455 ms
+ 4  PARI-LOND.group19 (19.0.4.1)  10.617 ms  10.628 ms LOND-BOST.group19 (19.0.7.1)  20.611 ms
+ 5  19.152.0.1 (19.152.0.1)  21.709 ms  21.673 ms  11.656 ms</code></pre>
+<p>We observe that traceroute with 3 packets sent explores two paths:<br />
+1. ATLA -&gt; NEWY -&gt; BOST -&gt; LOND -&gt; PARI -&gt; ZURI 2. ATLA -&gt; MIAM -&gt; GENE -&gt; PARI -&gt; ZURI</p>
+<p>At least we think that we observe these routes. We can’t be totally sure since we are missing some feedback, for instance GENE-&gt;PARI or PARI-&gt;ZURI. There should also be a third route, deviating from the first route in using the connection LOND-&gt;ZURI instead of LOND-&gt;PARI-&gt;ZURI, which is present in a <code>traceroute</code> from <em>LOND-host</em> to <em>ZURI-loopback</em>.</p>
+<p>We see these two routes because they have the same weight in total. Traffic from <em>MIAM</em> to <em>ZURI</em> is balanced to cost 9. The third possible route mentioned above also has the cost of 9.</p>
+<h1 id="1.4">
+</h1>
+<h1 id="no-transit-through-swiss-local">1.4: No transit through swiss local</h1>
+<h2 id="technique">Technique</h2>
+<p>We stopped routing through the swiss local network by not changing the default weights of the links of the two routers <em>GENE</em> and <em>ZURI</em> into the swiss local network. The default weight has the value of <strong>10</strong>, where as the route between <em>ZURI</em> and <em>GENE</em> traversing <em>PARI</em> has a weight of <strong>4</strong> in our network cost configuration explained in <a href="#1.3">1.3 Ospf cost</a>.</p>
+<p>The routing of all packets from <em>ZURI</em> to <em>PARI-host</em> over <em>GENE</em> explicitly is guaranteed by a static route at <em>ZURI</em>, routing pakets addressed to <em>PARI-host</em> to the Interface of <em>GENE</em> within the swiss local network <code>VLAN 10</code> with IP address <code>19.200.0.100</code>.<br />
+Another static route at <em>GENE</em> forwards then forwards these pakets to <em>PARI</em>, although this second static route shouldn’t be necessary anymore because it is the shortest route in OSPF routing anyways.</p>
+<h2 id="traceroute-from-staff_2-to-pari-host">Traceroute from <em>staff_2</em> to <em>PARI-host</em></h2>
+<pre class="console"><code>root@staff_2:~# traceroute 19.103.0.1
+traceroute to 19.103.0.1 (19.103.0.1), 30 hops max, 60 byte packets
+1  19.200.0.200 (19.200.0.200)  5.594 ms  4.769 ms  4.787 ms
+2  19.200.0.100 (19.200.0.100)  8.212 ms  8.192 ms  8.123 ms
+3  PARI-GENE.group19 (19.0.3.1)  7.994 ms PARI-ZURI.group19 (19.0.1.2)  7.413 ms PARI-GENE.group19 (19.0.3.1)  8.192 ms
+4  host-PARI.group19 (19.103.0.1)  7.900 ms  7.880 ms  8.159 ms</code></pre>
+<p>Note: In line three a paket is received on the interface of <em>ZURI</em> directly connected to <em>PARI</em>. This is not because a paket was sent directly to <em>PARI</em> from <em>ZURI</em>, but because the cost of the route from <em>PARI</em> to <em>ZURI</em> directly is the same as the detour via <em>GENE</em>. Therefore the timeout ICMP packages get loadbalanced and one is sent directly.</p>
+<h1 id="1.5">
+</h1>
+<h1 id="ibgp">1.5: iBGP</h1>
+<p>Each router was fed the following commands under <code>route bgp 19</code>:</p>
+<pre><code>neighbor 19.157.0.1 remote-as 19
+neighbor 19.157.0.1 update-source lo
+neighbor 19.157.0.1 next-hop-self</code></pre>
+<h2 id="bgp-summary-of-atla">BGP summary of ATLA:</h2>
+<pre class="console"><code>ATLA_router# sho ip bg sum
+
+IPv4 Unicast Summary:
+BGP router identifier 19.157.0.1, local AS number 19 vrf-id 0
+BGP table version 0
+RIB entries 0, using 0 bytes of memory
+Peers 7, using 143 KiB of memory
+
+Neighbor        V         AS MsgRcvd MsgSent   TblVer  InQ OutQ  Up/Down State/PfxRcd
+19.151.0.1      4         19      85      83        0    0    0 01:06:17            0
+19.152.0.1      4         19      68      74        0    0    0 01:05:59            0
+19.153.0.1      4         19      67      74        0    0    0 01:04:28            0
+19.154.0.1      4         19      67      74        0    0    0 01:04:01            0
+19.155.0.1      4         19      66      72        0    0    0 01:03:31            0
+19.156.0.1      4         19      66      74        0    0    0 01:03:08            0
+19.158.0.1      4         19      11      11        0    0    0 00:08:18            0
+
+Total number of neighbors 7</code></pre>
+<h2 id="necessity-of-update-source">Necessity of update-source</h2>
+<p>The command <code>update-source</code> needs to be used because the BGP-Session is established via the IP bound to the interface specified in the routing table as outgoing for the IP address of the partner. A temporary or permanent defect of this interface would tear down the connection, even though the router itself might still be online via one of the other interfaces. The command <code>update-source</code> allows binding the session to the IP and corresponding loopback interface, which will always be reachable as long as there is still a connection to the network.</p>
+<h1 id="2.1">
+</h1>
+<h1 id="ebgp-1">2.1: eBGP</h1>
+<h2 id="function-of-next-hop-self">Function of <code>next-hop-self</code></h2>
+<p>Since routing within the AS between routers belonging to the same AS shouldn’t be determined by BGP, routers within the AS shouldn’t add themselves to the respective paths when propagating routing information through the network.<br />
+Because of that, the routers bordering a different AS don’t add themselves onto the path provided by external routers when forwarding the info to their interal BGP partners. This is problematic because now these routers are missing the address of the router able to reach the advertised AS. Therefore, routers bordering a different AS need to set themselves as the next hop when forwarding the information to iBGP partners. This ensures that these partners know how to reach the targets known to the border router.</p>
+<h2 id="pari-bgp-table-shortened-report">PARI bgp table (shortened report)</h2>
+<pre class="console"><code>PARI_router# sho ip bgp
+[...]
+   Network          Next Hop            Metric LocPrf Weight Path
+*&gt; 1.0.0.0/8        179.0.92.1                             0 20 1 i
+* i                 19.152.0.1                    100      0 18 1 i
+* i                 19.157.0.1                    100      0 22 1 i
+*&gt;i2.0.0.0/8        19.155.0.1               0    100      0 2 i
+*  3.0.0.0/8        179.0.92.1                             0 20 1 3 i
+*&gt;i                 19.155.0.1                    100      0 2 3 i
+[...]
+*&gt;i18.0.0.0/8       19.152.0.1               0    100      0 18 i
+*                   179.0.92.1                             0 20 18 i
+* i19.0.0.0/8       19.155.0.1               0    100      0 i
+*&gt;i                 19.152.0.1               0    100      0 i
+*&gt; 20.0.0.0/8       179.0.92.1               0             0 20 i
+* i21.0.0.0/8       19.158.0.1               0    100      0 21 i
+*&gt;i                 19.154.0.1               0    100      0 21 i
+*&gt;i22.0.0.0/8       19.157.0.1               0    100      0 22 i</code></pre>
+<h2 id="looking-glass-from-as-20-router-lond">Looking Glass from AS 20 (router: LOND)</h2>
+<pre class="console"><code>2021-02-18T17:54:19
+...
+
+   Network          Next Hop            Metric LocPrf Weight Path
+...
+*&gt;i19.0.0.0/8       20.153.0.1                    100      0 19 i
+...
+Displayed  34 routes and 57 total paths</code></pre>
+<h2 id="traceroute-to-pari-host-from-as-20">Traceroute to PARI host from AS 20</h2>
+<pre class="console"><code>root@PARI_host:~# traceroute 20.153.0.1
+traceroute to 20.153.0.1 (20.153.0.1), 30 hops max, 60 byte packets
+ 1  PARI-host.group19 (19.103.0.2)  0.537 ms  0.119 ms  0.062 ms
+ 2  20.153.0.1 (20.153.0.1)  2.172 ms  2.160 ms  2.126 ms</code></pre>
+<h1 id="2.2">
+</h1>
+<h1 id="ixp-peering">2.2: IXP Peering</h1>
+<h3 id="community-lists">Community Lists</h3>
+<pre class="console"><code>NEWY_router# show bgp community-list
+[...]
+Community standard list 10
+    permit 19:17
+    permit 19:18
+Community standard list 20
+    permit 19:21
+    permit 19:22</code></pre>
+<p>These community lists allow us to apply match expressions fitting either community-list 10, which are our providers, or community-list 20, which are our customers. We tag incoming routes by those partners on entry into our AS.</p>
+<h3 id="prefix-list">Prefix-List</h3>
+<pre class="console"><code>NEWY_router# show ip prefix-list
+[...]
+BGP: ip prefix-list our_prefix: 1 entries
+   seq 5 permit 19.0.0.0/8</code></pre>
+<p>This prefix-list allows us to match our own prefix.</p>
+<h3 id="route-map-attach_comm_vals">Route-Map <code>ATTACH_COMM_VALS</code></h3>
+<pre class="console"><code>NEWY_router# show route-map
+[...]
+BGP:
+route-map: ATTACH_COMM_VALS Invoked: 2291
+ permit, sequence 10 Invoked 2291
+  Match clauses:
+    community 20
+  Set clauses:
+    community 82:2 82:4 82:6 82:8 82:10 82:12 82:14 82:15 82:17
+[...]
+ permit, sequence 11 Invoked 1592
+  Match clauses:
+    ip address prefix-list our_prefix
+  Set clauses:
+    community 82:2 82:4 82:6 82:8 82:10 82:12 82:14 82:15 82:17
+[...]
+ deny, sequence 12 Invoked 38
+  Match clauses:
+    community 10
+  Set clauses:
+[...]
+ permit, sequence 13 Invoked 34
+  Match clauses:
+  Set clauses:
+    community 82:2 82:4 82:6 82:8 82:10 82:12 82:14 82:15
+[...]</code></pre>
+<p>The route-map <code>ATTACH_COMM_VALS</code> has three route entries. The first checks for routes being sent to us by our customers AS21 and AS22 via the community-list <code>20</code>. The second checks for our own prefix. Both of those route entries add community values advertising to all peers connected to the IXP.<br />
+The third entry advertises all other prefixes and routes to all participants except to our Provider AS17. This prevents us from being used as a transit network to our provider for prefixes not associated with us or our customers.</p>
+<blockquote>
+<p>Info: These filtering steps become obsolete in light of new information provided in the requirements for the record for task 3.1 and the requirements of task 3.2. We highlight this change of our understanding in <a href="#3.1">3.1: Business Relations</a>.</p>
+</blockquote>
+<h3 id="looking-glass-entry-as6">Looking Glass Entry AS6</h3>
+<pre class="console"><code>2021-02-18T19:44:37
+BGP table version is 4458187, local router ID is 6.155.0.2, vrf id 0
+Default local pref 100, local AS 6
+Status codes:  s suppressed, d damped, h history, * valid, &gt; best, = multipath,
+               i internal, r RIB-failure, S Stale, R Removed
+Nexthop codes: @NNN nexthop&#39;s vrf id, &lt; announce-nh-self
+Origin codes:  i - IGP, e - EGP, ? - incomplete
+
+   Network          Next Hop            Metric LocPrf Weight Path
+   [...]
+*&gt; 19.0.0.0/8       180.82.0.19              0             0 19 i
+   [...]</code></pre>
+<h3 id="measurement-container-output-from-as6">Measurement Container Output from AS6</h3>
+<pre class="console"><code>root@d84c6ab09884:~# ./launch_traceroute.sh 6 19.155.0.1
+Hop 1:  6.0.199.1 TTL=0 during transit
+Hop 2:  6.0.4.2 TTL=0 during transit
+Hop 3:  6.0.8.2 TTL=0 during transit
+Hop 4:  19.155.0.1 Echo reply (type=0/code=0)
+Hop 5:  19.155.0.1 Echo reply (type=0/code=0)</code></pre>
+<h1 id="3.1">
+</h1>
+<h1 id="business-relationships">3.1: Business relationships</h1>
+<h3 id="example-of-route-maps">Example of route-maps</h3>
+<p>We tagged the incoming bgp routes on all customer / provider routers with the AS they came from with the schema 19:&lt;AS-Nr&gt;</p>
+<p>For example from <code>sh run</code> on LOND router (conn. to provider 1 / AS 17):</p>
+<pre class="console"><code>route-map TAG_17 permit 10
+    set community 19:17</code></pre>
+<p>route-map TAG_17 tags all incoming routes from AS 17 with 19:17 to filter them for the IXP eBGP connections.</p>
+<p><br></p>
+<pre class="console"><code>bgp community-list 20 permit 19:21
+bgp community-list 20 permit 19:22</code></pre>
+<p>creates a community list nr. 20, which matches on the tags from AS 21 and 22</p>
+<p><br></p>
+<pre class="console"><code>route-map PROVIDER_FILTER permit 10
+ match community 20
+ set community none
+...
+ip prefix-list our_prefix seq 5 permit 19.0.0.0/8
+...
+route-map PROVIDER_FILTER permit 11
+ match ip address prefix-list our_prefix</code></pre>
+<p>creates the route-map <code>PROVIDER_FILTER</code>, which only permits bgp routes to the provider, which either came from community list 20 (AS 21 / 22 aka. our customers) or our own 19.0.0.0/8 prefix and also clears our internal community tags.</p>
+<p><br></p>
+<pre class="console"><code>router bgp 19
+    neighbor 179.0.91.1 route-map TAG_17 in
+    neighbor 179.0.91.1 route-map PROVIDER_FILTER out</code></pre>
+<p>activates the two route-maps for in and out on the interface towards AS 17.</p>
+<h2 id="intermezzo">Intermezzo</h2>
+<blockquote>
+<p>Up until this point, we considered the requirements to configure our advertisements according to the customer/provider relationships without the additional information of what was expected in the report of 3.1 and the following requirements of task 3.2, namely that peers should <strong>only</strong> now about our and our customers prefix (3.1 report info) and that we should not peer with IXP participants in our region (3.2 requirements).</p>
+<p>We will therefore from this point on revise the route-maps provided and explained in <a href="../2/ixp_community_vals.md">2.2: IXP Peering</a> to adhere to the new (or better: newly evident) requirements.</p>
+</blockquote>
+<h3 id="peering">Peering</h3>
+<p>At NEWY facing the IXP82 and PARI facing our PEER AS20 we made sure to only export our routes and those of our customers with the community and prefix lists outlined above and to only accept routes incoming from the other region. The latter we achieved by creating a route-map matching an as-path with regex and denying routes going to AS’s 15,17,21,23, and 25.</p>
+<h3 id="looking-glass-of-peer-as20">Looking Glass of Peer AS20</h3>
+<pre class="console"><code>2021-02-18T20:38:39
+   Network          Next Hop            Metric LocPrf Weight Path
+*&gt;i1.0.0.0/8        20.155.0.1               0    100      0 1 i
+*&gt;i2.0.0.0/8        20.155.0.1                    100      0 1 3 2 i
+*&gt;i3.0.0.0/8        20.155.0.1                    100      0 1 3 i
+*&gt;i5.0.0.0/8        20.155.0.1               0    100      0 5 i
+*&gt;i6.0.0.0/8        20.155.0.1                    100      0 1 3 2 8 6 i
+*&gt;i7.0.0.0/8        20.155.0.1               0    100      0 7 i
+*&gt;i8.0.0.0/8        20.155.0.1                    100      0 1 3 2 8 i
+*&gt;i9.0.0.0/8        20.155.0.1               0    100      0 9 i
+*&gt;i10.0.0.0/8       20.155.0.1                    100      0 7 10 i
+*&gt;i11.0.0.0/8       20.155.0.1               0    100      0 11 i
+*&gt;i12.0.0.0/8       20.155.0.1                    100      0 7 9 12 i
+*&gt;i13.0.0.0/8       20.155.0.1               0    100      0 13 i
+*&gt;i14.0.0.0/8       20.155.0.1                    100      0 11 14 i
+*&gt;i16.0.0.0/8       20.155.0.1                    100      0 7 16 i
+*&gt;i17.0.0.0/8       20.152.0.1               0    100      0 17 i
+* i18.0.0.0/8       20.156.0.1               0    100      0 18 i
+*&gt;i                 20.151.0.1               0    100      0 18 i
+*&gt; 19.0.0.0/8       179.0.92.2                             0 19 i
+* i20.0.0.0/8       20.155.0.1               0    100      0 i
+* i                 20.157.0.1               0    100      0 i
+* i                 20.158.0.1               0    100      0 i
+* i                 20.154.0.1               0    100      0 i
+* i                 20.151.0.1               0    100      0 i
+* i                 20.156.0.1               0    100      0 i
+*&gt;                  0.0.0.0                  0         32768 i
+* i                 20.152.0.1               0    100      0 i
+*&gt; 21.0.0.0/8       179.0.92.2                             0 19 21 i
+* i22.0.0.0/8       20.155.0.1                    100      0 7 22 i
+*&gt;                  179.0.92.2                             0 19 22 i
+* i23.0.0.0/8       20.155.0.1                    100      0 7 22 23 i
+*&gt;                  179.0.92.2                             0 19 21 23 i
+*&gt;i24.0.0.0/8       20.155.0.1                    100      0 7 24 i
+*                   179.0.92.2                             0 19 21 24 i
+*&gt;i25.0.0.0/8       20.155.0.1                    100      0 7 24 25 i
+*&gt;i26.0.0.0/8       20.155.0.1                    100      0 7 26 i
+[...]</code></pre>
+<h3 id="measurement-traceroute-from-customer-as22-to-peer-as6">Measurement Traceroute from Customer AS22 to Peer AS6</h3>
+<pre class="console"><code>root@d84c6ab09884:~# ./launch_traceroute.sh 22 6.155.0.1
+Hop 1:  22.0.199.1 TTL=0 during transit
+Hop 2:  179.0.96.1 TTL=0 during transit
+Hop 3:  19.0.11.1 TTL=0 during transit
+Hop 4:  6.155.0.1 Echo reply (type=0/code=0)
+Hop 5:  6.155.0.1 Echo reply (type=0/code=0)</code></pre>
+<h1 id="3.2">
+</h1>
+<h1 id="ixp-policy">3.2 IXP policy</h1>
+<pre class="console"><code>NEWY_router# sho route-map
+[...]
+BGP:
+route-map: ATTACH_COMM_VALS Invoked: 2447
+ permit, sequence 10 Invoked 2447
+  Match clauses:
+    community 20
+  Set clauses:
+    community 82:2 82:4 82:6 82:8 82:10 82:12 82:14
+  Call clause:
+  Action:
+    Exit routemap
+ permit, sequence 11 Invoked 1718
+  Match clauses:
+    ip address prefix-list our_prefix
+  Set clauses:
+    community 82:2 82:4 82:6 82:8 82:10 82:12 82:14
+  Call clause:
+  Action:
+    Exit routemap
+[...]
+route-map: PERMIT_OTHER_REGION Invoked: 126
+ permit, sequence 10 Invoked 126
+  Match clauses:
+    as-path only_our_region
+  Set clauses:
+    community none
+  Call clause:
+  Action:
+    Exit routemap</code></pre>
+<p>ATTACH_COMM_VALS is the outgoing route-map that sets the IXP community values, so that the other region gets our advertisements. We only allow <code>community 20</code> (our customers) and <code>prefix-list our_prefix</code> (our /8 advertisement). This way, we prevent beeing a transfer AS for our peer and our providers, which would add additional costs.</p>
+<p>PERMIT_OTHER_REGION is ingoing route-map, which denies all ASes on our side if the IXP. (the name of the as-path access list <code>only_our_region</code> is missleading, as it denies AS 15|17|21|23|25)</p>
+<pre class="console"><code>NEWY_router# sho ip bgp
+
+   Network          Next Hop            Metric LocPrf Weight Path
+* i1.0.0.0/8        19.153.0.1                    100      0 20 1 i
+* i                 19.152.0.1                    100      0 18 1 i
+*                   180.82.0.2                             0 2 3 1 i
+*&gt;i                 19.157.0.1                    100      0 22 1 i
+*&gt; 2.0.0.0/8        180.82.0.2               0             0 2 i
+* i3.0.0.0/8        19.153.0.1                    100      0 20 3 i
+* i                 19.152.0.1                    100      0 18 3 i
+*&gt;                  180.82.0.2                             0 2 3 i
+* i5.0.0.0/8        19.153.0.1                    100      0 20 5 i
+* i                 19.152.0.1                    100      0 18 5 i
+*&gt;                  180.82.0.6                             0 6 5 i
+[..]
+*&gt; 12.0.0.0/8       180.82.0.8                             0 8 9 12 i
+*  13.0.0.0/8       180.82.0.2                             0 2 3 20 13 i
+* i                 19.153.0.1                    100      0 20 13 i
+* i                 19.152.0.1                    100      0 18 13 i
+*&gt;i                 19.157.0.1                    100      0 22 13 i
+[..]
+* i26.0.0.0/8       19.153.0.1                    100      0 20 7 26 i
+* i                 19.152.0.1                    100      0 18 7 26 i
+*&gt;                  180.82.0.8                             0 8 23 26 i
+* i                 19.158.0.1                    100      0 21 24 26 i
+* i                 19.154.0.1                    100      0 21 23 26 i
+* i                 19.157.0.1                    100      0 22 24 26 i
+* i176.0.0.0/4      19.153.0.1                    100      0 20 18 17 i
+*&gt;                  180.82.0.8                             0 8 15 17 i
+
+Displayed  26 routes and 64 total paths</code></pre>
+<p>As you can see, all routes that are <strong>NOT</strong> prefixed with an <em>i</em> (those who arrive via the IXP) only came from “the other side”, none from our providers / customers.</p>
+<h2 id="output-from-looking-glass-newy-from-as-8">Output from Looking Glass NEWY from AS 8:</h2>
+<pre class="console"><code>2021-02-21T17:43:58
+[...]
+   Network          Next Hop            Metric LocPrf Weight Path
+[...]
+*&gt; 19.0.0.0/8       180.82.0.19              0             0 19 i
+*  19.107.0.0/23    180.82.0.15                            0 15 17 18 3 24 i
+*&gt;i                 8.157.0.1                     100      0 9 24 i
+[...]</code></pre>
+<p>This shows that ASes from the other region still have direct access to us via the IXP</p>
+<h1 id="3.5">
+</h1>
+<h1 id="bgp-hijack">3.5: BGP Hijack</h1>
+<p>The hijack consists of the Stub / Tier1 AS advertisements, for the 19.107.0.0/23 subnet (the one of Atlanta Host connection). This can be seen in any Looking Glass Entry of another AS.<br />
+In our AS, we only accept /8 prefixes, so we don’t have any of the malicious routes in our network.</p>
+<p>To prevent our ATLA host subnet from beeing stolen, we could advertise the same ip with an /24 mask, as routers normally search for the longest matching path. This wouldn’t be a good solution though, if the attackers advertised the /24 from the start, because we need to choose a more specific Subnet, and thus we must advertise more subnets, as all addresses inside it could possibly be in use.</p>
+<p>For the example Attack on 19.107.0.0/24 -&gt; we would need to advertise 19.107.0.0/25 and 19.107.0.ff/25 for example to cover all possible IPs of this subnet. This adds more advertisements = more load on the network. Alos, this doesn’t work if an AS advertises a single IP (e.g. 19.107.0.1/32), as we can’t announce a more specific path.</p>
+</body>
+</html>
