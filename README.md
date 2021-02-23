@@ -6,7 +6,7 @@
 ## by Corin Baurmann, Karl Skomski, Justus Purat, Matthias Kind
 
 This repository contains documentation and backups of configuration of our autonomous system in the Telematik 2020/21 mini internet project at Freie Universität Berlin. The project is derived from the [Mini Internet Project](https://github.com/nsg-ethz/mini_internet_project) of ETH Zürich.
-[Final PDF](./Telematik 20_21 FU Berlin Mini-Inet AS19.pdf)
+[Final PDF](./Telematik%2020_21%20FU%20Berlin%20Mini-Inet%20AS19.pdf)
 
 ## Contents
 [This](./netmap.png) netmap shows the overall network topology.
