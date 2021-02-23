@@ -21,7 +21,8 @@
 
 ### 3 - Policies
 - [3.1: Business relationships](#3.1)
-- [3.2 IXP policy](#3.2)
+- [3.2: IXP policy](#3.2)
+- [3.3 / 3.4: eBGP Load balancing](#3.3/3.4)
 - [3.5: BGP Hijack](#3.5)
 
 
@@ -417,7 +418,7 @@ activates the two route-maps for in and out on the interface towards AS 17.
 ## Intermezzo
 > Up until this point, we considered the requirements to configure our advertisements according to the customer/provider relationships without the additional information of what was expected in the report of 3.1 and the following requirements of task 3.2, namely that peers should **only** now about our and our customers prefix (3.1 report info) and that we should not peer with IXP participants in our region (3.2 requirements).  
 >
->We will therefore from this point on revise the route-maps provided and explained in [2.2: IXP Peering](../2/ixp_community_vals.md) to adhere to the new (or better: newly evident) requirements.
+>We will therefore from this point on revise the route-maps provided and explained in [2.2: IXP Peering](#2.2) to adhere to the new (or better: newly evident) requirements.
 
 ### Peering
 At NEWY facing the IXP82 and PARI facing our PEER AS20 we made sure to only export our routes and those of our customers with the community and prefix lists outlined above and to only accept routes incoming from the other region. The latter we achieved by creating a route-map matching an as-path with regex and denying routes going to AS's 15,17,21,23, and 25.
@@ -565,13 +566,17 @@ As you can see, all routes that are **NOT** prefixed with an *i* (those who arri
 
 This shows that ASes from the other region still have direct access to us via the IXP
 
+<h1 id="3.3/3.4"></h1>
+# 3.3 and 3.4
+Due to missing time, we didn't implement these two tasks. The solution we would implement though woud be repeating ourselves multiple times on the AS path we don't want to be used primarily, as by default the shorter path would be preffered over the longer one.
+
 <h1 id="3.5"></h1>
 # 3.5: BGP Hijack
 
 The hijack consists of the Stub / Tier1 AS advertisements, for the 19.107.0.0/23 subnet (the one of Atlanta Host connection). This can be seen in any Looking Glass Entry of another AS. \
 In our AS, we only accept /8 prefixes, so we don't have any of the malicious routes in our network.
 
-To prevent our ATLA host subnet from beeing stolen, we could advertise the same ip with an /24 mask, as routers normally search for the longest matching path. This wouldn't be a good solution though, if the attackers advertised the /24 from the start, because we need to choose a more specific Subnet, and thus we must advertise more subnets, as all addresses inside it could possibly be in use.
+To prevent our ATLA host subnet from beeing stolen, we advertise the same ip with an /24 mask (19.107.0.0/24), as routers normally search for the longest matching path. This wouldn't always be a good solution though, if the attackers advertised the /24 from the start, because we need to choose a more specific Subnet, and thus we must advertise more subnets, as all addresses inside it could possibly be in use.
 
 For the example Attack on 19.107.0.0/24 -> we would need to advertise 19.107.0.0/25 and 19.107.0.ff/25 for example to cover all possible IPs of this subnet. This adds more advertisements = more load on the network. Alos, this doesn't work if an AS advertises a single IP (e.g. 19.107.0.1/32), as we can't announce a more specific path.
 

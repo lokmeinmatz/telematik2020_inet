@@ -20,5 +20,6 @@
 
 ### 3 - Policies
 - [3.1: Business relationships](#3.1)
-- [3.2 IXP policy](#3.2)
+- [3.2: IXP policy](#3.2)
+- [3.3 / 3.4: eBGP Load balancing](#3.3/3.4)
 - [3.5: BGP Hijack](#3.5)

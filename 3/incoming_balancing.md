@@ -1,0 +1,2 @@
+# 3.3 and 3.4
+Due to missing time, we didn't implement these two tasks. The solution we would implement though woud be repeating ourselves multiple times on the AS path we don't want to be used primarily, as by default the shorter path would be preffered over the longer one.

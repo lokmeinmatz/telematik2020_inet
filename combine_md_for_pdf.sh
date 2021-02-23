@@ -5,6 +5,7 @@ truncate -s 0 $RES_NAME
 
 
 write_file() {
+    echo "writing $2"
     echo "<h1 id=\"$2\"></h1>" >> $RES_NAME
     cat $1 >> $RES_NAME
     echo "\n" >> $RES_NAME
@@ -50,12 +51,16 @@ write_file 3/policy_routing.md 3.1
 # 3.2
 write_file 3/ixp_policy.md 3.2
 
+# 3.3 & 3.4
+write_file 3/incoming_balancing.md 3.3/3.4
+
 # 3.5
 write_file 3/hijack.md 3.5
 
 
 replace '[ospf_cost.md](./ospf_cost.md)' '[1.3 Ospf cost](#1.3)'
 replace '[3.1: Business Relations](../3/policy_routing.md)' '[3.1: Business Relations](#3.1)'
+replace '(../2/ixp_community_vals.md)' '(#2.2)'
 
 
 echo "Building html..."
